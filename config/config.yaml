@@ -1,0 +1,30 @@
+system:
+  name: "Jarvis"
+  version: "2.0.0"
+  personality: "Jarvis" # Options: Professional, Friendly, Strict, Jarvis
+
+perception:
+  vision:
+    enabled: true
+    interval: 2.0
+    cooldown: 300 # 5 minutes between greets
+  audio:
+    enabled: true
+    wake_word: "jarvis"
+    model_path: "models/vosk-model-small-en-us-0.15"
+  activity:
+    enabled: true
+    interval: 5.0
+
+decision_engine:
+  focus_threshold: 1500 # 25 minutes
+  distraction_threshold: 3 # switches in 5 mins
+  idle_threshold: 600 # 10 minutes
+
+memory:
+  db_path: "memory/jarvis_v2.db"
+
+action:
+  tts_enabled: true
+  voice_rate: 175
+  volume: 1.0

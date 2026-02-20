@@ -1,0 +1,8 @@
+opencv-python
+vosk
+sounddevice
+psutil
+pywin32
+pyyaml
+pyautogui
+colorama
