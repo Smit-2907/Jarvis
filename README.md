@@ -1,4 +1,4 @@
-# 🤖 Jarvis Autonomous Agent v2.0
+#  Jarvis Autonomous Agent v2.0
 
 > "At your service, Sir."
 
