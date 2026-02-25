@@ -44,16 +44,36 @@ class DecisionEngine:
             "as am i": "jarvis",
             "my miss me": "my name is",
             "miss me as": "my name is",
-            "higher heard": "i heard"
+            "higher heard": "i heard",
+            "what detection": "object detection",
+            "see something": "detect objects",
+            "holding up": "what am i holding",
+            "jobless": "jarvis",
+            "dharavish": "jarvis",
+            "charvis": "jarvis",
+            "garbage": "jarvis",
+            "travis": "jarvis",
+            "harvest": "jarvis",
+            "service": "jarvis",
+            "status": "status",
+            "see you": "see",
+            "look at": "look",
+            "who are": "who",
+            "time is it": "time",
+            "what time": "time",
+            "shut down": "shutdown",
+            "go to sleep": "shutdown",
+            "lock in": "focus",
+            "focus mode": "focus"
         }
 
         # Intent mapping with keywords
         self.intents = {
             "focus_mode": ["focus", "lock in", "deep work", "work", "online"],
-            "stop_mode": ["stop", "cancel", "never mind", "back", "idle", "break", "offline", "shutdown", "exit", "goodbye"],
+            "stop_mode": ["stop", "cancel", "never mind", "back", "idle", "break", "offline", "shutdown", "exit", "goodbye", "sleep"],
             "status_check": ["status", "how are you", "are you okay", "nominal", "doing", "check systems"],
-            "vision_check": ["see", "look", "vision", "eyes", "who", "camera", "scanning"],
-            "finger_count": ["finger", "count", "holding", "many"],
+            "vision_check": ["see", "look", "who", "camera", "scanning", "presence"],
+            "object_detection": ["what is this", "detect objects", "scan objects", "what do you see", "holding", "identify"],
             "time_check": ["time", "clock", "date"],
             "humor": ["joke", "funny", "laugh", "humour"],
             "math": ["plus", "minus", "times", "divided", "calculate", "what is", "+", "-", "*", "/", "sum"],
@@ -70,10 +90,22 @@ class DecisionEngine:
 
     def _clean_command(self, cmd: str):
         """Pre-processes command to fix common speech recognition errors."""
+        # 1. Hard corrections
         sorted_keys = sorted(self.corrections.keys(), key=len, reverse=True)
         for error in sorted_keys:
             if error in cmd:
                 cmd = cmd.replace(error, self.corrections[error])
+        
+        # 2. Key phrase fuzzy matching
+        # If the command contains words that sound like intents, steer it there
+        words = cmd.split()
+        for i_name, i_keywords in self.intents.items():
+            for kw in i_keywords:
+                for word in words:
+                    # If word is very similar to a keyword, replace it
+                    if difflib.SequenceMatcher(None, word, kw).ratio() > 0.85:
+                        cmd = cmd.replace(word, kw)
+        
         return cmd
 
     def _load_rules(self):
@@ -100,10 +132,8 @@ class DecisionEngine:
         return "Sir"
 
     def _set_user_name(self, name: str):
-        # Sanitize name length to prevent noise from being saved
         if len(name.split()) > 2:
             return False
-        
         os.makedirs(os.path.dirname(self.user_memory_path), exist_ok=True)
         with open(self.user_memory_path, 'w') as f:
             json.dump({"name": name}, f)
@@ -150,53 +180,80 @@ class DecisionEngine:
             if cmd in rules:
                 return {"action": "SPEAK", "text": rules[cmd]}
 
-            # 3. Math Calculation
+            # 3. Object Detection (NEW)
+            if any(word in cmd for word in self.intents["object_detection"]):
+                if self.vision:
+                    objects = self.vision.get_detected_objects()
+                    if objects:
+                        if len(objects) == 1:
+                            resp = self.personality.get_response("OBJECT_DETECTED")
+                            return {"action": "SPEAK", "text": resp.format(obj=objects[0])}
+                        else:
+                            obj_str = ", ".join(objects[:-1]) + " and a " + objects[-1]
+                            resp = self.personality.get_response("OBJECTS_MULTIPLE")
+                            return {"action": "SPEAK", "text": resp.format(obj_str=obj_str)}
+                    else:
+                        return {"action": "SPEAK", "text": f"I'm looking, {name}, but I can't quite identify any specific objects in the frame right now. Perhaps if you move the item closer?"}
+
+            # 4. Math Calculation
             if any(word in cmd for word in self.intents["math"]) or re.search(r'[0-9]', cmd):
                 try:
                     math_input = cmd.replace("plus", "+").replace("minus", "-").replace("times", "*").replace("divided by", "/")
                     expr = re.sub(r'[^0-9+\-*/().]', '', math_input)
                     if expr:
                         res = eval(expr, {"__builtins__": None}, {})
-                        return {"action": "SPEAK", "text": f"According to my calculations, that would be {res}."}
+                        math_phrases = [
+                            f"According to my calculations, that would be {res}.",
+                            f"The result is {res}, Sir.",
+                            f"That comes out to {res}.",
+                            f"I've computed the value for you: {res}."
+                        ]
+                        return {"action": "SPEAK", "text": random.choice(math_phrases)}
                 except: pass
 
-            # 4. Vision & Fingers
-            if any(word in cmd for word in self.intents["finger_count"]) or any(word in cmd for word in self.intents["vision_check"]):
+            # 5. Vision Check (Presence)
+            if any(word in cmd for word in self.intents["vision_check"]):
                 if self.vision:
                     count = self.vision.get_face_count()
                     if count > 0:
-                        if "finger" in cmd:
-                             return {"action": "SPEAK", "text": f"I see you there, {name}. Please hold your hand up clearly and I will attempt to count your fingers."}
                         return {"action": "SPEAK", "text": f"I see you clearly, {name}. Monitoring your present state."}
                     return {"action": "SPEAK", "text": "I can see the room, but I don't see any faces in the frame."}
 
-            # 5. Modes & System
+            # 6. Modes & System
             if any(word in cmd for word in self.intents["focus_mode"]):
                 self.sm.transition(JarvisState.FOCUS_MODE)
                 return {"action": "SPEAK", "text": f"Focus mode initiated, {name}. I will now log any potential distractions."}
 
             if any(word in cmd for word in ["shutdown", "offline", "exit", "goodbye", "sleep"]):
-                return {"action": "LOG", "text": "Exiting", "terminate": True}
+                # Only exit if the command specifically addresses Jarvis or uses a direct command
+                if "jarvis" in raw_cmd or "system" in raw_cmd or len(cmd.split()) == 1:
+                    return {"action": "LOG", "text": "Exiting", "terminate": True}
+                else:
+                    print(f"👂 Ignored potential shutdown: '{cmd}' (No direct address)")
 
-            if any(word in cmd for word in self.intents["status_check"]):
-                return {"action": "SPEAK", "text": f"All systems are operational and nominal, {name}."}
+                status_phrases = [
+                    f"All systems are operational and nominal, {name}.",
+                    "The neural network is stable and internal diagnostics are clear, Sir.",
+                    "Primary functions are at 100% capacity. We are fully operational.",
+                    "No issues to report, Sir. Everything is running smoothly."
+                ]
+                return {"action": "SPEAK", "text": random.choice(status_phrases)}
 
             if any(word in cmd for word in self.intents["time_check"]):
                 return {"action": "SPEAK", "text": f"The current time is exactly {datetime.now().strftime('%I:%M %p')}."}
 
-            # 6. Small Talk
+            # 7. Small Talk & Humor
             if any(word in cmd for word in ["hello", "hi", "hey"]):
                 return {"action": "SPEAK", "text": f"Hello {name}. How can I assist you in your work today?"}
 
             if any(word in cmd for word in self.intents["humor"]):
-                return {"action": "SPEAK", "text": "A little levity? Very well." + random.choice(self.jokes)}
+                return {"action": "SPEAK", "text": "A little levity? Very well. " + random.choice(self.jokes)}
 
             if "thank" in cmd:
                 return {"action": "SPEAK", "text": f"You are most welcome, {name}."}
 
-            # 7. Fallback
+            # 8. Fallback
             if len(cmd) > 5:
-                # If nothing matched but it's a long string, acknowledge but don't commit
                 return {"action": "SPEAK", "text": f"I'm afraid I didn't quite catch that, {name}. My audio model heard something about '{cmd[:20]}'. Would you care to repeat?"}
 
         return None

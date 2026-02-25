@@ -16,6 +16,7 @@ Jarvis is a local-first, autonomous personal intelligence system designed to mon
 
 ### 👁️ Perception Layer
 - **Persistent Vision:** Real-time face detection and presence monitoring using OpenCV.
+- **Object Detection:** Powered by Mediapipe Tasks. Jarvis can identify over 80 common objects (phones, bottles, laptops, etc.). Just ask *"Jarvis, what do you see?"*
 - **Activity Tracking:** Monitors active applications to detect distractions and calculate productivity scores.
 
 ---

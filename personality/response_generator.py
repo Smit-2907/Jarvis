@@ -8,24 +8,47 @@ class ResponseGenerator:
         self.responses: Dict[str, Dict[str, List[str]]] = {
             "Jarvis": {
                 "GREETING": [
-                    "Welcome back, Sir. I have been keeping the systems idling in your absence.",
-                    "At your service, Sir. Shall we continue with the project?",
-                    "System initialized. Good to see you, Sir."
+                    "Welcome back, Sir. I have been keeping the systems idling in your absence. Everything appears to be in order.",
+                    "At your service, Sir. Shall we continue where we left off?",
+                    "System initialized. Good to see you, Sir. I've updated the diagnostic logs for your review.",
+                    "Online and ready, Sir. The environment is stable.",
+                    "Greeting, Sir. Always a pleasure to see you back at the console."
                 ],
                 "FOCUS_START": [
-                    "Engaging focus protocols now, Sir. I'll filter out the noise.",
-                    "Focus mode active. I suggest you stay on course.",
-                    "Deep work session initiated. I'm keeping a watchful eye on your progress."
+                    "Engaging focus protocols now, Sir. I'll filter out the digital noise and keep a watchful eye.",
+                    "Focus mode active. I suggest you stay on course; time is of the essence.",
+                    "Deep work session initiated. I'm prioritizing your primary workflow now.",
+                    "Locking it down, Sir. Let's make some progress, shall we?"
                 ],
                 "COACH_SWITCH": [
-                    "Sir, you seem to be multitasking quite aggressively. Might I suggest focusing on one task?",
-                    "Task switching detected. I'm noting a drop in efficiency, Sir.",
-                    "Pardon me, Sir, but we seem to be drifting away from our objective."
+                    "Sir, you seem to be multitasking quite aggressively. Might I suggest focusing on one task at a time?",
+                    "Task switching detected. I'm noting a slight drop in efficiency, Sir. Perhaps we should stick to the current window?",
+                    "Pardon me, Sir, but we seem to be drifting away from our objective. Shall I close the distractions?",
+                    "Sir, your focus appears to be wavering. I've logged the switch."
                 ],
                 "USER_LEFT": [
-                    "I'll be right here, Sir. Monitoring the background.",
-                    "Idle mode engaged. Safe travels, Sir."
+                    "I'll be right here, Sir. Monitoring the background systems while you're away.",
+                    "Idle mode engaged. Safe travels, Sir. I'll keep the lights on.",
+                    "Standing by for your return, Sir. Everything is secure."
                 ],
+                "OBJECT_DETECTED": [
+                    "Evaluating the frame now, Sir... Ah, it appears to be a {obj}.",
+                    "Scanning complete. That looks like a {obj}, if I'm not mistaken.",
+                    "I'm fairly certain I see a {obj} in your proximity, Sir.",
+                    "I've identified a {obj} in the current view."
+                ],
+                "OBJECTS_MULTIPLE": [
+                    "My sensors are picking up several items: a {obj_str}.",
+                    "The room is quite busy, Sir. I can see a {obj_str}.",
+                    "I've identified multiple objects here: a {obj_str}.",
+                    "Scanning results show a {obj_str}. Quite the collection, Sir."
+                ],
+                "THINKING": [
+                    "One moment while I process that, Sir.",
+                    "Evaluating your request... just a second.",
+                    "Analyzing the current data streams, Sir.",
+                    "Processing... please stand by."
+                ]
             },
             "Professional": {
                 "GREETING": ["Good day. Shall we resume our session?", "Welcome back. I am ready for your instructions."],

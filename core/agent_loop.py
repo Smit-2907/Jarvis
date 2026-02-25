@@ -28,7 +28,8 @@ class AgentLoop:
         self.tts = TTSEngine(self.config['action']['voice_rate'], self.config['action']['volume'])
         self.activity = ActivityTracker(self.config['perception']['activity']['interval'])
         self.audio = AudioListener(self.config['perception']['audio']['model_path'], 
-                                   self.config['perception']['audio']['wake_word'])
+                                   self.config['perception']['audio']['wake_word'],
+                                   self.config['perception']['audio'].get('intensity_threshold', 500))
         
         self._running = False
         
