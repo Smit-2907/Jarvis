@@ -1,8 +1,11 @@
 import time
 import yaml
 import threading
+import sys
+from colorama import Fore, Style, init
+
 from core.event_bus import bus
-from core.state_machine import StateMachine
+from core.state_machine import StateMachine, JarvisState
 from core.decision_engine import DecisionEngine
 from perception.perception_layer import VisionPresence, ActivityTracker
 from perception.audio_listener import AudioListener
@@ -10,12 +13,13 @@ from memory.database import DatabaseManager, ShortTermMemory
 from personality.response_generator import ResponseGenerator
 from action.action_layer import TTSEngine, AutomationEngine
 
+init(autoreset=True)
+
 class AgentLoop:
     def __init__(self, config_path: str):
         with open(config_path, 'r') as f:
             self.config = yaml.safe_load(f)
             
-        # Layers
         self.db = DatabaseManager(self.config['memory']['db_path'])
         self.stm = ShortTermMemory()
         self.personality = ResponseGenerator(self.config['system']['personality'])
@@ -32,21 +36,29 @@ class AgentLoop:
                                    self.config['perception']['audio'].get('intensity_threshold', 500))
         
         self._running = False
-        
-        # Connect Bus to Decision Engine
         self._setup_subscriptions()
+        self._last_interaction = time.time()
 
     def _setup_subscriptions(self):
-        # All events go to the decision engine
         events = ["USER_PRESENT", "USER_LEFT", "APP_SWITCHED", "WAKE_WORD_DETECTED", "USER_COMMAND"]
         for e in events:
             bus.subscribe(e, lambda data, et=e: self._handle_event(et, data))
 
     def _handle_event(self, event_type: str, data: dict):
+        self._last_interaction = time.time()
+        
+        # INTERRUPTION LOGIC: If user says "stop" or "listen jarvis", kill active TTS
+        raw_cmd = data.get("command", "").lower()
+        if "stop" in raw_cmd or "listen jarvis" in raw_cmd or "shut up" in raw_cmd:
+            self.tts.stop_speaking()
+            # If it was just a stop command, we can return early or proceed to evaluate
+            if raw_cmd.strip() in ["stop", "listen jarvis", "shut up"]:
+                return
+
         result = self.decision_engine.evaluate(event_type, data)
         if result:
             if result.get("terminate"):
-                self.tts.speak("Goodbye! Shutting down systems.")
+                self.tts.speak("Systems powering down. It's been a pleasure, Sir.")
                 time.sleep(2)
                 self.stop()
                 sys.exit(0)
@@ -58,35 +70,46 @@ class AgentLoop:
             elif result.get("action") == "LOG":
                 self.db.log_event(event_type, result["text"])
 
+    def _proactive_check(self):
+        while self._running:
+            now = time.time()
+            if self.sm.current_state == JarvisState.IDLE and (now - self._last_interaction > 600):
+                if self.vision.is_present:
+                    self._last_interaction = now
+                    resp = "Pardon me, Sir. I noticed it's been a while since our last interaction. Shall I put the primary scanners on idle, or are we still making progress?"
+                    self.tts.speak(resp)
+            time.sleep(60)
+
     def _cli_input_thread(self):
-        """Allows direct text interaction with Jarvis via terminal."""
         while self._running:
             try:
-                # Use input() in a way that doesn't block the whole app too much
-                cmd = input("💬 Say something to Jarvis: ").strip().lower()
+                print(f"{Fore.WHITE}USER > ", end="", flush=True)
+                cmd = sys.stdin.readline().strip().lower()
                 if cmd:
                     bus.publish("USER_COMMAND", {"command": cmd})
-            except EOFError:
-                break
             except Exception:
                 continue
 
     def run(self):
         self._running = True
-        print("🤖 Jarvis Agent Loop Starting...")
-        print("💡 Hint: Type 'focus' or 'hello' below to interact.")
         
-        # Start Audio & CLI threads
+        print(f"{Fore.CYAN}{'='*50}")
+        print(f"{Fore.CYAN}       STARK INDUSTRIES - J.A.R.V.I.S. OS v2.4")
+        print(f"{Fore.CYAN}       STATUS: {Fore.GREEN}COMPANION")
+        print(f"{Fore.CYAN}{'='*50}{Style.RESET_ALL}")
+        
         self.audio.start()
+        
         threading.Thread(target=self._cli_input_thread, daemon=True).start()
+        threading.Thread(target=self._proactive_check, daemon=True).start()
+        
+        print(f"{Fore.BLUE}💬 Hello, Sir. Jarvis at your service. All systems standing by.")
         
         try:
             while self._running:
-                # Perception Polling
                 self.vision.poll()
                 self.activity.poll()
-                
-                time.sleep(1.0) # Main loop cadence
+                time.sleep(1.0) 
         except KeyboardInterrupt:
             self.stop()
 
@@ -94,4 +117,4 @@ class AgentLoop:
         self._running = False
         self.audio.stop()
         self.vision.stop()
-        print("🛑 Jarvis Offline.")
+        print(f"\n{Fore.RED}🛑 Jarvis Systems Offline. Powering down.")

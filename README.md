@@ -1,111 +1,82 @@
-#  Jarvis Autonomous Agent v2.0
+#  J.A.R.V.I.S. Autonomous Companion v3.0
 
-> "At your service, Sir."
+> "At your service, Sir. I've taken the liberty of optimizing all background tasks."
 
-Jarvis is a local-first, autonomous personal intelligence system designed to monitor productivity, assist with automation, and provide a sophisticated conversational interface. Inspired by the legendary Stark Industries AI, this system combines computer vision, offline speech recognition, and an event-driven decision engine to create a seamless interactive experience.
+J.A.R.V.I.S. (Just A Rather Very Intelligent System) is a local-first, autonomous personal intelligence system designed for deep productivity, proactive assistance, and immersive interaction. Inspired by the legendary Stark Industries AI, this system combines high-fidelity computer vision, offline speech recognition, and an event-driven modular skill engine to create a truly sentient-feeling desktop companion.
 
 ---
 
 ## 🌟 Key Features
 
-### 🧠 Advanced Cognition
-- **Fuzzy Intent Matching:** Understands commands even through noisy microphone transcriptions (e.g., "Kenya switch" → "Can you switch").
-- **Continuous Listening:** A smart 8-second conversational window allows for natural back-and-forth without repeating the wake word.
-- **Dynamic Learning:** Teach Jarvis new rules on the fly. *"Jarvis, learn that 'coffee time' means 'open Spotify'."*
-- **Iron Man Persona:** Authentic JARVIS personality, including "Sir" addressing and a sophisticated British tone.
+### 🧠 Advanced Sentience (v3.0)
+- **Modular Skill Engine:** A highly scalable architecture with specialized skills for everything from math and vision to system automation and web research.
+- **Companion Context:** Remembers the last 8 exchanges to maintain natural, ongoing conversations without context loss.
+- **Proactive Intelligence:** Jarvis performs background check-ins if he detects you are present but idle, and coaching notifications if you lose focus.
+- **Neural Processing Simulation:** Abstract queries trigger a visual "synapse simulation" in the terminal, showing the AI's internal logic flow.
+- **Interruption Protocol:** Say *"Stop"* or *"Listen Jarvis"* to immediately silence his audio feed.
 
-### 👁️ Perception Layer
-- **Persistent Vision:** Real-time face detection and presence monitoring using OpenCV.
-- **Object Detection:** Powered by Mediapipe Tasks. Jarvis can identify over 80 common objects (phones, bottles, laptops, etc.). Just ask *"Jarvis, what do you see?"*
-- **Activity Tracking:** Monitors active applications to detect distractions and calculate productivity scores.
+### 👁️ Tactical Vision v3.0
+- **MediaPipe Tasks Integration:** Utilizes high-performance landmarker models for sub-millimeter tracking.
+- **Finger Counting & Gesture Tracking:** Jarvis can count exactly how many fingers you are holding up and track hand movements with high precision.
+- **Biometric Emotion Analysis:** Analyzes 52 face blendshapes to detect cognitive states like **Happy**, **Focused**, **Surprised**, or **Serious**.
+- **Spatial Awareness:** Detects when you are holding objects by cross-referencing hand position with identified items.
+- **Activity Intelligence:** Automatically logs application usage and calculates productivity scores in an offline SQLite database.
+
+### 🔊 Sonic Presence
+- **Fluent TTS:** A custom-tuned speech engine with sentence-level pacing, phonetic smoothing, and natural breath pauses.
+- **Visual Waveforms:** Every word Jarvis speaks is accompanied by a dynamic ASCII waveform (` ▂▃▄▅▆▇█`) in your terminal.
+- **British Vocal Core:** Optimized for high-quality British English synthesis for the authentic "Stark Industries" experience.
 
 ---
 
 ## 🚀 Getting Started (Setup Guide)
 
-Follow these steps to get Jarvis running on your local machine.
-
 ### 1. Prerequisites
-- **OS:** Windows 10 or 11 (Highly recommended)
-- **Python:** 3.10 or higher installed.
-- **Microphone & Webcam:** Required for audio/vision features.
+- **OS:** Windows 10 or 11 (Optimized for PowerShell and System TTS)
+- **Python:** 3.10+
+- **Microphone & Webcam:** Required for full peripheral awareness.
 
-### 2. Download the AI Model (CRITICAL)
-Jarvis uses **Vosk** for offline speech recognition. You MUST download the model manually:
-1. Download the English model: [vosk-model-small-en-us-0.15.zip](https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip)
-2. Create a folder named `models` in the project root.
-3. Extract the zip file into that folder. Your folder structure should look like this:
-   ```text
-   jarvis/
-   ├── models/
-   │   └── vosk-model-small-en-us-0.15/  <-- Model files go here
-   ├── main.py
-   └── ...
-   ```
+### 2. Download Offline Models
+Jarvis requires local models for speech and vision:
+1. **Speech:** Download [vosk-model-small-en-us-0.15.zip](https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip).
+2. **Vision:** Hand and Face landmarker tasks are auto-downloaded or can be placed in `models/`.
 
 ### 3. Installation
-
-#### Option A: Using `uv` (Recommended)
-If you have `uv` installed:
+Using `uv` for high-performance dependency management:
 ```powershell
+uv add mediapipe numpy
 uv sync
 uv run main.py
 ```
 
-#### Option B: Using `pip`
-If you prefer standard pip:
-```powershell
-# Create a virtual environment
-python -m venv .venv
-.venv\Scripts\activate
+---
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Run Jarvis
-python main.py
-```
+## 🏗️ The Skill System
+Jarvis is fully modular. Each "Skill" is a standalone unit:
+- `WebSearchSkill`: Intelligent subject extraction for refined Google research.
+- `SystemHealthSkill`: Visual ASCII HUD for CPU/RAM/Battery diagnostics.
+- `VisionSkill`: Biometric analysis, hand tracking, and object-in-hand logic.
+- `AutomationSkill`: Voice-controlled screenshots, PC locking, and brightness.
+- `ProtocolSkill`: High-level routines like "Protocol Zero" or "Deep Work".
+- `DeepThoughtSkill`: Abstract analysis and sentient banter.
 
 ---
 
-## 🏗️ Folder Structure
-```text
-jarvis/
-├── action/             # TTS and Automation logic
-├── config/             # YAML settings and learned rules
-├── core/               # Engine, Event Bus, and State Machine
-├── memory/             # SQLite database and short-term RAM
-├── perception/         # Camera and Microphone drivers
-└── main.py             # Entry point
-```
-
----
-
-## 💬 Common Commands
-Once the microphone is active (look for the 🎙 icon), try saying:
-
-- **Greet:** *"Hello Jarvis"*
-- **Identity:** *"Who are you?"*
-- **Math:** *"What is 150 times 2 plus 5?"*
-- **Status:** *"Jarvis, status report"*
-- **Personality:** *"Tell me a joke"*
-- **Shutdown:** *"Jarvis, go offline"* or *"Shutdown"*
-
----
-
-## ⚙️ Configuration
-You can tweak Jarvis's behavior in `config/config.yaml`:
-- Change `personality` to `Jarvis`, `Professional`, or `Friendly`.
-- Adjust `voice_rate` to change how fast he speaks.
-- Toggle `vision` or `audio` modules on/off.
+## 💬 Tactical Commands
+- **Protocols:** *"Jarvis, engage Protocol Deep Work"* or *"Activate Protocol Zero"*
+- **Diagnostics:** *"Give me a full system diagnostic"*
+- **Vision:** *"How many fingers am I holding up?"* or *"What's my current emotion?"*
+- **Spatial:** *"What am I holding?"* or *"Scan the room"*
+- **Research:** *"Research the latest advancements in fusion power"*
+- **Banter:** *"Are you human?"*, *"Who is Tony Stark?"*, *"Thanks for the help"*
 
 ---
 
 ## 🔒 Privacy & Security
-- **100% Offline:** No audio or video data is ever sent to the cloud.
-- **Local Database:** Your productivity logs are stored in a local SQLite file (`memory/jarvis_v2.db`).
-- **No API Keys:** No OpenAI or Google Cloud keys required.
+- **100% Local:** No cloud APIs. No data leaves your machine.
+- **Encrypted Memory:** All learned rules and activity logs are stored locally.
+- **No subscription fees:** Runs entirely on your hardware.
 
 ---
 
-*“I’ve already compiled a list of your favorites, Sir.”*
+*“Honestly, Sir, I have all of a human's sophistication with none of the biological overhead.”*

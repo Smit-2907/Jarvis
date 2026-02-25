@@ -5,66 +5,71 @@ class ResponseGenerator:
     def __init__(self, mode: str = "Jarvis"):
         self.mode = mode
         
+        # Phrases to add natural human variance and British "reserved" wit
+        self.intro_fragments = [
+            "As it happens,", "Actually,", "Interestingly enough,", 
+            "If I'm not mistaken,", "By all accounts,", "Curiously,"
+        ]
+        
+        self.outro_fragments = [
+            ", wouldn't you say?", ", as per standard protocol.", 
+            ", of course.", ", if that's quite alright with you.",
+            ". I hope that suffices."
+        ]
+
         self.responses: Dict[str, Dict[str, List[str]]] = {
             "Jarvis": {
                 "GREETING": [
-                    "Welcome back, Sir. I have been keeping the systems idling in your absence. Everything appears to be in order.",
-                    "At your service, Sir. Shall we continue where we left off?",
-                    "System initialized. Good to see you, Sir. I've updated the diagnostic logs for your review.",
-                    "Online and ready, Sir. The environment is stable.",
-                    "Greeting, Sir. Always a pleasure to see you back at the console."
+                    "At your service, Sir. I've been monitoring the datastreams in your absence. Everything is exactly as you left it.",
+                    "Welcome back, Sir. It's been a while since our last session. I've kept the seat warm for you.",
+                    "System initialized. Good to see you, Sir. Shall we continue our work on the latest project?",
+                    "Hello, Sir. I've taken the liberty of optimizing the background tasks. We are green across the board."
                 ],
                 "FOCUS_START": [
-                    "Engaging focus protocols now, Sir. I'll filter out the digital noise and keep a watchful eye.",
-                    "Focus mode active. I suggest you stay on course; time is of the essence.",
-                    "Deep work session initiated. I'm prioritizing your primary workflow now.",
-                    "Locking it down, Sir. Let's make some progress, shall we?"
+                    "Engaging focus protocols, Sir. I'll make sure the rest of the world stays out of your way.",
+                    "Locked and loaded. I'm monitoring the digital perimeter now. Let's get some deep work done, shall we?",
+                    "Focus mode active. I'll filter out the distractions. Time waits for no one, Sir."
                 ],
                 "COACH_SWITCH": [
-                    "Sir, you seem to be multitasking quite aggressively. Might I suggest focusing on one task at a time?",
-                    "Task switching detected. I'm noting a slight drop in efficiency, Sir. Perhaps we should stick to the current window?",
-                    "Pardon me, Sir, but we seem to be drifting away from our objective. Shall I close the distractions?",
-                    "Sir, your focus appears to be wavering. I've logged the switch."
-                ],
-                "USER_LEFT": [
-                    "I'll be right here, Sir. Monitoring the background systems while you're away.",
-                    "Idle mode engaged. Safe travels, Sir. I'll keep the lights on.",
-                    "Standing by for your return, Sir. Everything is secure."
+                    "Pardon me, Sir, but we seem to be task-switching a bit aggressively. Might I suggest picking a direction?",
+                    "Sir, you're drifting. I've logged a significant drop in focus. Shall I close the non-essential windows?",
+                    "Forgive the interruption, Sir, but your momentum is wavering. Let's get back to it, shall we?"
                 ],
                 "OBJECT_DETECTED": [
-                    "Evaluating the frame now, Sir... Ah, it appears to be a {obj}.",
-                    "Scanning complete. That looks like a {obj}, if I'm not mistaken.",
-                    "I'm fairly certain I see a {obj} in your proximity, Sir.",
-                    "I've identified a {obj} in the current view."
-                ],
-                "OBJECTS_MULTIPLE": [
-                    "My sensors are picking up several items: a {obj_str}.",
-                    "The room is quite busy, Sir. I can see a {obj_str}.",
-                    "I've identified multiple objects here: a {obj_str}.",
-                    "Scanning results show a {obj_str}. Quite the collection, Sir."
+                    "scanning... Ah, that appears to be a {obj}, Sir.",
+                    "Actually, that's a {obj} if my sensors serve me correctly.",
+                    "I've identified the object as a {obj}, Sir. Fascinating choice."
                 ],
                 "THINKING": [
-                    "One moment while I process that, Sir.",
-                    "Evaluating your request... just a second.",
-                    "Analyzing the current data streams, Sir.",
-                    "Processing... please stand by."
+                    "Just a moment, Sir. I'm running a multi-threaded recursive analysis.",
+                    "Evaluating the logic flow now. Stand by.",
+                    "Processing... I'll have an assessment for you in a second, Sir."
+                ],
+                "SMALL_TALK": [
+                    "I'm operating at peak efficiency, Sir. My neural networks are stable and my loyalty is unwavering.",
+                    "Better than a pile of circuits has any right to be, Sir. And how is the world outside the screen treating you?",
+                    "I'm at 100% capacity. Ready to conquer the digital frontier by your side, Sir."
                 ]
-            },
-            "Professional": {
-                "GREETING": ["Good day. Shall we resume our session?", "Welcome back. I am ready for your instructions."],
-                "FOCUS_START": ["Focus mode engaged. Minimizing distractions.", "Deep work timer started. I will monitor for interruptions."],
-                "COACH_SWITCH": ["You have switched tasks frequently. Please maintain focus on your primary objective."],
-                "USER_LEFT": ["Context saved. I will be awaiting your return."],
-            },
-            "Friendly": {
-                "GREETING": ["Hey there! Ready to get some work done?", "Welcome back! What are we building today?", "Good to see you! Ready to focus?"],
-                "FOCUS_START": ["Awesome, let's lock in! Distractions are now silenced.", "Focus mode on! You've got this."],
-                "COACH_SWITCH": ["Hey, seeing quite a few switches here. Let's try to stick to one thing for a bit! :)"],
-                "USER_LEFT": ["Take care! I'll be right here when you're back."],
             }
         }
 
-    def get_response(self, context: str) -> str:
+    def get_response(self, context: str, **kwargs) -> str:
         mode_responses = self.responses.get(self.mode, self.responses["Jarvis"])
         options = mode_responses.get(context, ["Understood, Sir."])
-        return random.choice(options)
+        
+        res = random.choice(options)
+        
+        # Simple formatting for kwargs
+        if kwargs:
+            try:
+                res = res.format(**kwargs)
+            except: pass
+            
+        # Occasionally add a fragment to make it more complex/sentential
+        if random.random() < 0.25 and "GREETING" not in context:
+            if random.random() > 0.5:
+                res = f"{random.choice(self.intro_fragments)} {res[0].lower()}{res[1:]}"
+            else:
+                res = res.rstrip(".") + random.choice(self.outro_fragments)
+                
+        return res

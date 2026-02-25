@@ -6,3 +6,5 @@ pywin32
 pyyaml
 pyautogui
 colorama
+mediapipe
+numpy

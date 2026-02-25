@@ -1,57 +1,106 @@
 import os
 import threading
 import subprocess
-from core.event_bus import bus
+import time
+import random
+import re
+import signal
 
 class TTSEngine:
     def __init__(self, rate: int = 175, volume: float = 1.0):
         self.rate = rate
         self.volume = volume
         self.lock = threading.Lock()
+        self.active_process = None
+        
+        # Phonetic replacements for smoother Microsoft British voice
+        self.phonetics = {
+            "Jarvis": "Jarvis",
+            "J.A.R.V.I.S.": "Jarvis",
+            "Sir": "Sir,",
+            "Actually": "Actually,",
+            "Interestingly": "Interestingly,",
+            "CPU": "C P U",
+            "RAM": "Ram",
+            "HUD": "Hud"
+        }
+
+    def _apply_fluency(self, text: str) -> str:
+        words = text.split()
+        new_words = []
+        for word in words:
+            clean = word.strip(",.!?\"")
+            if clean in self.phonetics:
+                new_words.append(word.replace(clean, self.phonetics[clean]))
+            else:
+                new_words.append(word)
+        return " ".join(new_words)
+
+    def stop_speaking(self):
+        """Forcefully stops the current speech process."""
+        if self.active_process:
+            try:
+                # On Windows, we need to kill the process tree to stop PowerShell properly
+                subprocess.run(f"taskkill /F /T /PID {self.active_process.pid}", shell=True, capture_output=True)
+                self.active_process = None
+                from colorama import Fore
+                print(f"\n{Fore.YELLOW}🔇 Audio feed interrupted by user command.")
+            except Exception as e:
+                print(f"❌ Error stopping speech: {e}")
 
     def speak(self, text: str):
-        """Non-blocking TTS using PowerShell. Optimized for an 'Iron Man' Jarvis vibe."""
+        """Non-blocking TTS using Windows System.Speech with interruptible process control."""
         def _speak():
             with self.lock:
-                print(f"🔊 Jarvis: {text}")
-                # Escape single quotes and backticks for PowerShell
-                sanitized_text = text.replace("'", "''").replace("`", "``")
+                # If already speaking, we don't necessarily want to stack them, 
+                # but for simplicity we allow sequential. However, we should stop prev one if preferred.
+                # In this companion mode, we'll stop the previous if a new one starts.
+                if self.active_process:
+                    self.stop_speaking()
+
+                from colorama import Fore, Style
+                waves = [" ", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
+                waveform = "".join(random.choice(waves) for _ in range(25))
+                print(f"\n{Fore.CYAN}🔊 JARVIS: {waveform} {Fore.WHITE}{text}{Style.RESET_ALL}", flush=True)
                 
-                # PowerShell script to find a British voice (en-GB) and speak with it
-                # If no British voice is found, it falls back to the default system voice.
-                command = f'''
-                Add-Type -AssemblyName System.Speech;
-                $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer;
-                $voices = $speak.GetInstalledVoices();
-                $jarvisVoice = $voices | Where-Object {{ $_.VoiceInfo.Culture.Name -eq "en-GB" -and $_.Enabled }} | Select-Object -First 1;
+                processed_text = self._apply_fluency(text).replace("'", "''")
+                sentences = re.split(r'(?<=[.?!])\s+', processed_text)
                 
-                if ($jarvisVoice -ne $null) {{
-                    $speak.SelectVoice($jarvisVoice.VoiceInfo.Name);
-                }}
-                
-                $speak.Rate = {(self.rate - 175) // 10};
-                $speak.Volume = {int(self.volume * 100)};
-                $speak.Speak('{sanitized_text}');
+                script_body = ""
+                for s in sentences:
+                    if not s.strip(): continue
+                    local_rate = int((self.rate - 175) / 10) + random.randint(-1, 0)
+                    script_body += f'''
+                    $synth.Rate = {local_rate}
+                    $synth.Speak('{s.strip()}')
+                    Start-Sleep -Milliseconds 150
+                    '''
+
+                ps_script = f'''
+                Add-Type -AssemblyName System.Speech
+                $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer
+                $voices = $synth.GetInstalledVoices()
+                $target = $voices | Where-Object {{ $_.VoiceInfo.Culture.Name -like "*en-GB*" -and $_.Enabled }} | Select-Object -First 1
+                if (-not $target) {{ $target = $voices | Where-Object {{ $_.VoiceInfo.Culture.Name -like "*en-*" -and $_.Enabled }} | Select-Object -First 1 }}
+                if ($target) {{ $synth.SelectVoice($target.VoiceInfo.Name) }}
+                $synth.Volume = {int(self.volume * 100)}
+                {script_body}
                 '''
+                
                 try:
-                    subprocess.run(["powershell", "-Command", command], capture_output=True)
+                    # Use Popen to keep track of the process handle for interruptions
+                    self.active_process = subprocess.Popen(
+                        ["powershell", "-NoProfile", "-Command", ps_script],
+                        creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+                    )
+                    self.active_process.wait()
+                    self.active_process = None
                 except Exception as e:
-                    print(f"❌ TTS Error: {e}")
+                    print(f"❌ TTS Execution Error: {e}")
 
         threading.Thread(target=_speak, daemon=True).start()
 
 class AutomationEngine:
     def execute_command(self, command: str):
-        import pyautogui
-        import subprocess
-        
         print(f"⚙️ Executing: {command}")
-        if "focus" in command:
-            pass
-        elif "close" in command and "distractions" in command:
-            distractions = ["Spotify.exe", "Discord.exe"]
-            for app in distractions:
-                try:
-                    subprocess.run(["taskkill", "/F", "/IM", app], capture_output=True)
-                except:
-                    pass
+        pass

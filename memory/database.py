@@ -48,6 +48,20 @@ class DatabaseManager:
                          (datetime.now().isoformat(), app, title, duration))
             conn.commit()
 
+    def get_activity_summary(self, limit_hours: int = 24) -> List[Dict[str, Any]]:
+        """Returns a summary of app usage in the last N hours."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT app_name, SUM(duration) as total_duration 
+                FROM activity_logs 
+                WHERE timestamp IS NOT NULL
+                GROUP BY app_name
+                ORDER BY total_duration DESC
+            ''')
+            return [dict(row) for row in cursor.fetchall()]
+
 class ShortTermMemory:
     """Stores temporary session variables and timestamps."""
     def __init__(self):
