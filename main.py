@@ -15,7 +15,7 @@ def main():
         sys.exit(1)
 
     print("========================================")
-    print("      JARVIS AUTONOMOUS AGENT v2.0      ")
+    print("      JARVIS AUTONOMOUS AGENT v4.0      ")
     print("========================================")
     
     agent = AgentLoop(config_path)

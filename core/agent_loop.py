@@ -105,7 +105,7 @@ class AgentLoop:
         self._running = True
         
         print(f"{Fore.CYAN}{'='*50}")
-        print(f"{Fore.CYAN}       STARK INDUSTRIES - J.A.R.V.I.S. OS v2.4")
+        print(f"{Fore.CYAN}       STARK INDUSTRIES - J.A.R.V.I.S. OS v4.0")
         print(f"{Fore.CYAN}       STATUS: {Fore.GREEN}COMPANION")
         print(f"{Fore.CYAN}{'='*50}{Style.RESET_ALL}")
         
