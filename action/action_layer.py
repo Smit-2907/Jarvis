@@ -5,6 +5,7 @@ import time
 import random
 import re
 import signal
+from core.event_bus import bus
 
 class TTSEngine:
     def __init__(self, rate: int = 175, volume: float = 1.0):
@@ -58,6 +59,9 @@ class TTSEngine:
                 if self.active_process:
                     self.stop_speaking()
 
+                # Signal that JARVIS is starting to speak
+                bus.publish("JARVIS_SPEAKING", {"status": True})
+
                 from colorama import Fore, Style
                 waves = [" ", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
                 waveform = "".join(random.choice(waves) for _ in range(25))
@@ -97,6 +101,9 @@ class TTSEngine:
                     self.active_process = None
                 except Exception as e:
                     print(f"❌ TTS Execution Error: {e}")
+                finally:
+                    # Always signal that JARVIS has finished speaking
+                    bus.publish("JARVIS_SPEAKING", {"status": False})
 
         threading.Thread(target=_speak, daemon=True).start()
 

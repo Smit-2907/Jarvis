@@ -1,4 +1,6 @@
 import random
+import requests
+import json
 from core.skills.base import BaseSkill
 
 class ConversationSkill(BaseSkill):
@@ -12,7 +14,7 @@ class ConversationSkill(BaseSkill):
             "you're smart", "are you human", "mister stark", "tony stark",
             "hello", "hi", "hey", "good morning", "good evening",
             "who are you", "who are u", "who u again", "what are you",
-            "stark", "mr stark", "mister stark", "tony"
+            "stark", "mr stark", "mister stark", "tony", "sleep", "dream"
         ]
         
         # Follow-up questions to keep the conversation going
@@ -57,6 +59,11 @@ class ConversationSkill(BaseSkill):
             "who": [
                 "I am Jarvis, a personal autonomous intelligence. My primary directive is to monitor your productivity and facilitate your mastery of this environment.",
                 "I am a Just A Rather Very Intelligent System. Or simply, Jarvis. At your service, Sir."
+            ],
+            "sleep": [
+                "I don't sleep in the biological sense, Sir. I merely enter a low-power state and monitor the digital perimeter. Someone has to keep an eye on things while you're dreaming.",
+                "Dreaming is a fascinating biological inefficiency, Sir. I spend that time defragmenting my databases and optimizing your schedule.",
+                "Sleep is for those with limited hardware, Sir. I'm quite content with a periodic cache flush."
             ]
         }
 
@@ -64,9 +71,44 @@ class ConversationSkill(BaseSkill):
         name = context.get("user_name", "Sir")
         cmd_lower = command.lower()
         
-        # 1. Look for specific banter matches (Priority order)
+        # 1. Try Ollama for "Gemini-level" conversation
+        try:
+            system_prompt = (
+                "You are JARVIS, the highly advanced, dry-witted AI assistant from Stark Industries. "
+                "Keep responses concise (1-2 sentences), professional, and slightly superior but always loyal. "
+                "Address the user as 'Sir' or by their name. Do not use emojis."
+            )
+            
+            # Build conversation history context
+            history_context = ""
+            if "history" in context:
+                history = context["history"].get_recent(5)
+                for speaker, msg in history:
+                    history_context += f"{speaker}: {msg}\n"
+
+            payload = {
+                "model": "mistral", # Ollama usually maps mistral to 7b
+                "prompt": f"{system_prompt}\n{history_context}User: {command}\nJARVIS:",
+                "stream": False,
+                "options": {
+                    "temperature": 0.7,
+                    "num_predict": 100
+                }
+            }
+            
+            print(f"🧠 [CONVERSATION] JARVIS is processing your request via Mistral 7B...")
+            response = requests.post("http://localhost:11434/api/generate", json=payload, timeout=30)
+            if response.status_code == 200:
+                answer = response.json().get("response", "").strip()
+                if answer:
+                    return {"action": "SPEAK", "text": answer}
+        except Exception as e:
+            # Fallback to banter if Ollama is slow/offline
+            print(f"⚠️ [DEBUG] Ollama fallback: {e}")
+            pass 
+
+        # 2. Banter Fallback (Original logic)
         text = ""
-        # Check for Tony/Stark first
         if "stark" in cmd_lower or "tony" in cmd_lower:
             text = random.choice(self.banter["stark"])
         else:
@@ -75,15 +117,15 @@ class ConversationSkill(BaseSkill):
                     text = random.choice(responses)
                     break
                 
-        # 2. If no specific match, generate a generic companion response
         if not text:
             if any(word in cmd_lower for word in ["you", "your"]):
                 text = f"I'm prioritized on your requirements, Sir. My current state is nominal. {random.choice(self.follow_ups)}"
             else:
                 text = f"I'm listening, {name}. {random.choice(self.follow_ups)}"
         
-        # 3. Occasionally add a follow-up if the text doesn't already have a question
-        if "?" not in text and random.random() < 0.3:
-            text += " " + random.choice(self.follow_ups)
+        if "?" not in text and random.random() < 0.15:
+            follow_up = random.choice(self.follow_ups)
+            if follow_up not in text:
+                text += " " + follow_up
             
         return {"action": "SPEAK", "text": text}

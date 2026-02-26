@@ -19,7 +19,7 @@ class SystemSkill(BaseSkill):
         if any(word in command for word in ["time", "clock", "date"]):
             return {"action": "SPEAK", "text": f"The current time is {datetime.now().strftime('%I:%M %p')}, Sir."}
 
-        if any(word in command for word in ["shutdown", "offline", "exit", "goodbye", "sleep"]):
+        if any(word in command for word in ["system shutdown", "go offline jarvis", "exit system", "goodbye jarvis", "go to sleep now"]):
             return {"action": "LOG", "text": "Exiting", "terminate": True}
 
         if "status" in command:

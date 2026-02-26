@@ -1,6 +1,8 @@
 import time
 import random
 import sys
+import json
+import requests
 from colorama import Fore, Style
 from core.skills.base import BaseSkill
 
@@ -11,17 +13,48 @@ class DeepThoughtSkill(BaseSkill):
 
     def execute(self, command: str, context: dict) -> dict:
         name = context.get("user_name", "Sir")
+        history = context.get("history", None)
         
         # Fascinating Visuals
         self._simulate_neural_activity()
         
+        # 1. Try Ollama (Local LLM)
+        try:
+            # JARVIS System Prompt to give Mistral the right personality
+            system_prompt = (
+                "You are JARVIS, a sophisticated, dry-witted, and loyal AI assistant inspired by Tony Stark's assistant. "
+                "Keep responses concise, professional, and slightly superior but always polite. "
+                "Address the user as 'Sir' or by their name if provided. Don't use emojis."
+            )
+            
+            payload = {
+                "model": "mistral",
+                "prompt": f"{system_prompt}\nUser: {command}\nJARVIS:",
+                "stream": False,
+                "options": {
+                    "temperature": 0.7,
+                    "num_predict": 100 # Keep it relatively brief for speech
+                }
+            }
+            
+            print(f"🧠 [NEURAL LINK] Querying local Mistral core via Ollama...")
+            response = requests.post("http://localhost:11434/api/generate", json=payload, timeout=30)
+            if response.status_code == 200:
+                answer = response.json().get("response", "").strip()
+                if answer:
+                    # Clean up any AI hallucinations where it might repeat 'Sir' too much
+                    return {"action": "SPEAK", "text": answer}
+        
+        except Exception as e:
+            # Silence error and fallback to simulation
+            pass
+
+        # 2. Fallback to Simulated Wisdom
         responses = [
-            f"Sir, based on a multi-threaded analysis of the current data streams, I believe we should prioritize efficiency. Logic suggests a systematic approach works best.",
-            f"The probability of success increases with a structured routine, {name}. I've optimized my heuristics to assist in your decision making.",
+            f"Sir, based on a multi-threaded analysis of the current data streams, I believe we should prioritize efficiency.",
             f"Analyzing the variables... it appears we are at a critical junction in development. I'm standing by to compute the next best course of action.",
             f"My opinion, Sir? The data is conclusive. Focus is our strongest asset in this environment."
         ]
-        
         return {"action": "SPEAK", "text": random.choice(responses)}
 
     def _simulate_neural_activity(self):

@@ -26,6 +26,8 @@ from core.skills.automation_skill import AutomationSkill
 from core.skills.tactical_vision_skill import TacticalVisionSkill
 from core.skills.deep_thought_skill import DeepThoughtSkill
 from core.skills.conversation_skill import ConversationSkill
+from core.skills.omni_brain_skill import OmniBrainSkill
+from core.skills.vision_learning_skill import VisionLearningSkill
 
 class DecisionEngine:
     def __init__(self, state_machine, memory: ShortTermMemory, db: DatabaseManager, personality: ResponseGenerator, vision=None):
@@ -42,10 +44,10 @@ class DecisionEngine:
         self.skills = [
             ProtocolSkill(self.sm),
             LearningSkill(self.rules_path, self.user_memory_path),
+            OmniBrainSkill(), # Primary Intelligence
             AutomationSkill(),
             WebSearchSkill(),
-            DeepThoughtSkill(),
-            ConversationSkill(),
+            VisionLearningSkill(),
             AppLauncherSkill(),
             TacticalVisionSkill(),
             ProductivitySkill(self.sm),
@@ -74,7 +76,26 @@ class DecisionEngine:
             "give mjarvis": "give me jarvis", "jarvijarvis": "jarvis",
             "who you again": "who are you again", "day gping": "day going",
             "search voucher": "search for", "search warrant": "search for",
-            "years": "sir", "for years": "sir", "active and ready for years": "active and ready for sir"
+            "years": "sir", "for years": "sir", "active and ready for years": "active and ready for sir",
+            "pigeon": "vision", "visit": "vision", "i'd apply": "identify", "i'd enter fee": "identify",
+            "old in": "holding", "cold in": "holding", "what am i old inside": "what am i holding",
+            "scan the room": "scan the room", "scandalous": "scan the room", "skandham": "scan the room",
+            "look at me": "see me", "hear me": "you there", "charles": "jarvis", "dharavi": "jarvis",
+            "shows hours": "are you", "do ever": "do you ever", "ihat": "what", "myve": "i've",
+            "listen to have": "jarvis", "of his do": "do you", "how do you saw": "how are you",
+            "he's very": "jarvis", "is thereir": "jarvis",
+            "i read years": "jarvis", "i met": "jarvis", "hines me": "see me",
+            "rightas your": "how is your", "whatever was": "whatever",
+            "might be": "jarvis", "as youweir": "as you were",
+            "ittify": "identify", "i was do i": "do you", "daughter is do": "jarvis do",
+            "is there": "jarvis", "service": "jarvis", "configure": "computer",
+            "configured": "computer", "hell of a": "hello jarvis",
+            "u n hurt me": "can you hear me", "genres": "jarvis",
+            "golf land": "offline", "go offline and": "go offline",
+            "can you here me": "can you hear me", "stop dollars": "stop",
+            "stop jarvis": "stop", "i'm good": "shutdown", "i'm listening": "jarvis",
+            "stark": "stark", "ropen": "open", "hopen": "open", "lopen": "open",
+            "tell me mouse": "tell me about", "use latest": "news"
         }
 
     def _clean_command(self, cmd: str):
@@ -119,31 +140,20 @@ class DecisionEngine:
                     resp = self.personality.get_response("COACH_SWITCH")
                     self.chat_history.add("JARVIS", resp)
                     return {"action": "SPEAK", "text": resp}
-            self.db.log_activity(app_name, data.get("title", ""), 5.0)
+            self.memory.update("current_app", app_name)
+            self.memory.update("window_title", data.get("window_title", ""))
+            self.db.log_activity(app_name, data.get("window_title", ""), data.get("duration", 0))
 
         # 2. Command Handling
         elif event_type in ["USER_COMMAND", "WAKE_WORD_DETECTED"]:
             raw_cmd = data.get("command", "").strip().lower()
             if not raw_cmd:
-                resp = self.personality.get_response("SMALL_TALK")
-                self.chat_history.add("JARVIS", resp)
-                self.sm.transition(JarvisState.CHATTING)
-                return {"action": "SPEAK", "text": resp}
+                return {"action": "SPEAK", "text": "At your service, Sir. I'm listening."}
 
             cmd = self._clean_command(raw_cmd)
             self.chat_history.add("USER", cmd)
-            
-            # Contextual Bias: If we're chatting, favor ConversationSkill
-            if self.sm.current_state == JarvisState.CHATTING:
-                # Move ConversationSkill to front of list for this check
-                chat_skill = next((s for s in self.skills if isinstance(s, ConversationSkill)), None)
-                if chat_skill and chat_skill.matches(cmd):
-                    result = chat_skill.execute(cmd, {"user_name": user_name, "history": self.chat_history})
-                    if result:
-                        self.chat_history.add("JARVIS", result["text"])
-                        return result
 
-            # Check Skills
+            # Context
             context = {
                 "user_name": user_name,
                 "vision": self.vision,
@@ -153,23 +163,42 @@ class DecisionEngine:
                 "history": self.chat_history
             }
 
+            # 1. System Overrides (Highest Priority)
+            if any(word in cmd for word in ["shutdown", "offline", "exit", "goodbye"]):
+                system_skill = next((s for s in self.skills if isinstance(s, SystemSkill)), None)
+                if system_skill: return system_skill.execute(cmd, context)
+
+            # 2. Action Skills (If user says 'open', 'play', etc., prioritize doing it)
             for skill in self.skills:
-                if skill.matches(cmd):
-                    # For companion feel, transition to CHATTING if it's a social/info skill
-                    if isinstance(skill, (ConversationSkill, DeepThoughtSkill, FunSkill)):
-                        self.sm.transition(JarvisState.CHATTING)
-                        
+                if isinstance(skill, (AppLauncherSkill, MediaSkill, SystemHealthSkill)):
+                    if skill.matches(cmd):
+                        return skill.execute(cmd, context)
+
+            # 3. Intelligence Pass (Catch-all for reasoning/search/vision)
+            brain = next((s for s in self.skills if isinstance(s, OmniBrainSkill)), None)
+            if brain and brain.matches(cmd):
+                self.sm.transition(JarvisState.CHATTING)
+                result = brain.execute(cmd, context)
+                if result:
+                    if result.get("action") == "SPEAK":
+                        self.chat_history.add("JARVIS", result["text"])
+                    return result
+
+            # 4. Fallback Skill Check
+            for skill in self.skills:
+                if skill.matches(cmd) and not isinstance(skill, (OmniBrainSkill, SystemSkill, AppLauncherSkill, MediaSkill)):
                     result = skill.execute(cmd, context)
                     if result and result.get("action") == "SPEAK":
                         self.chat_history.add("JARVIS", result["text"])
                     return result
 
-            # 3. Fallback to Conversation (Instead of erroring)
-            self.sm.transition(JarvisState.CHATTING)
-            chat_skill = next((s for s in self.skills if isinstance(s, ConversationSkill)), None)
-            if chat_skill:
-                result = chat_skill.execute(cmd, context)
-                self.chat_history.add("JARVIS", result["text"])
+            # 5. Global Fallback to Brain
+            if brain:
+                result = brain.execute(cmd, context)
+                if result and result.get("action") == "SPEAK":
+                    self.chat_history.add("JARVIS", result["text"])
                 return result
+
+        return None
 
         return None

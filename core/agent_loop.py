@@ -26,18 +26,29 @@ class AgentLoop:
         self.sm = StateMachine()
         self.automation = AutomationEngine()
         
-        self.vision = VisionPresence(self.config['perception']['vision']['interval'])
+        self.vision = VisionPresence(
+            self.config['perception']['vision']['interval'],
+            show_hud=self.config['perception']['vision'].get('debug_view', False)
+        )
+        print(f"🧠 {Fore.YELLOW}Initializing Intelligence Core...")
         self.decision_engine = DecisionEngine(self.sm, self.stm, self.db, self.personality, vision=self.vision)
         
+        print(f"🔊 {Fore.YELLOW}Connecting Action Subsystems...")
         self.tts = TTSEngine(self.config['action']['voice_rate'], self.config['action']['volume'])
         self.activity = ActivityTracker(self.config['perception']['activity']['interval'])
+        
+        print(f"👂 {Fore.YELLOW}Calibrating Audio Sensors (Asynchronous)...")
         self.audio = AudioListener(self.config['perception']['audio']['model_path'], 
                                    self.config['perception']['audio']['wake_word'],
-                                   self.config['perception']['audio'].get('intensity_threshold', 500))
+                                   self.config['perception']['audio'].get('intensity_threshold', 150))
+        
+        # We start the audio thread immediately, it handles its own slow model loading
+        self.audio.start()
         
         self._running = False
         self._setup_subscriptions()
         self._last_interaction = time.time()
+        print(f"✅ {Fore.GREEN}Systems Ready.")
 
     def _setup_subscriptions(self):
         events = ["USER_PRESENT", "USER_LEFT", "APP_SWITCHED", "WAKE_WORD_DETECTED", "USER_COMMAND"]
@@ -98,7 +109,7 @@ class AgentLoop:
         print(f"{Fore.CYAN}       STATUS: {Fore.GREEN}COMPANION")
         print(f"{Fore.CYAN}{'='*50}{Style.RESET_ALL}")
         
-        self.audio.start()
+        print(f"🎤 All core threads dispatched. Jarvis is monitoring...")
         
         threading.Thread(target=self._cli_input_thread, daemon=True).start()
         threading.Thread(target=self._proactive_check, daemon=True).start()

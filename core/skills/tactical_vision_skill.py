@@ -41,7 +41,7 @@ class TacticalVisionSkill(BaseSkill):
             report += "No significant anomalies detected in the immediate environment. "
             
         # 3. Threat Level
-        threat = "nominal" if emotion != "Surprised" else "slightly elevated (Startle Response)"
-        report += f"Ambient threat level is {threat}. Environment is stable, Sir."
+        threat = "nominal" if emotion != "Surprised" else "slightly elevated due to a detected startle response"
+        report += f"Ambient threat level is currently {threat}. All local systems are stable and the environment is secured, Sir."
         
         return {"action": "SPEAK", "text": report}

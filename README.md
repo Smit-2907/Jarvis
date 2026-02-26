@@ -1,50 +1,61 @@
-#  J.A.R.V.I.S. Autonomous Companion v3.0
+#  J.A.R.V.I.S. Autonomous Companion v4.0 (Strategic Optical Upgrade)
 
-> "At your service, Sir. I've taken the liberty of optimizing all background tasks."
+> "At your service, Sir. I've upgraded the optical sensors and synchronized the global datastreams."
 
-J.A.R.V.I.S. (Just A Rather Very Intelligent System) is a local-first, autonomous personal intelligence system designed for deep productivity, proactive assistance, and immersive interaction. Inspired by the legendary Stark Industries AI, this system combines high-fidelity computer vision, offline speech recognition, and an event-driven modular skill engine to create a truly sentient-feeling desktop companion.
+J.A.R.V.I.S. (Just A Rather Very Intelligent System) is a local-first, autonomous personal intelligence system designed for deep productivity, proactive assistance, and immersive interaction. This system combines **YOLOv8** object detection, **DeepFace** biometrics, **MediaPipe** hand tracking, and a local **Ollama** intelligence core to create a truly sentient-feeling desktop companion.
 
 ---
 
 ## 🌟 Key Features
 
-### 🧠 Advanced Sentience (v3.0)
-- **Modular Skill Engine:** A highly scalable architecture with specialized skills for everything from math and vision to system automation and web research.
-- **Companion Context:** Remembers the last 8 exchanges to maintain natural, ongoing conversations without context loss.
-- **Proactive Intelligence:** Jarvis performs background check-ins if he detects you are present but idle, and coaching notifications if you lose focus.
-- **Neural Processing Simulation:** Abstract queries trigger a visual "synapse simulation" in the terminal, showing the AI's internal logic flow.
-- **Interruption Protocol:** Say *"Stop"* or *"Listen Jarvis"* to immediately silence his audio feed.
+### 🧠 OmniBrain Intelligence (v4.0)
+- **Ollama Integration:** Powered by a local **Mistral 7B** model for advanced reasoning, witty banter, and complex problem-solving.
+- **Global Datastream Uplink:** Integrated **DuckDuckGo Search** for real-time news, weather, and world data.
+- **Multimodal Context:** Jarvis combines what he *sees* (camera) with what he *knows* (LLM) and what you *do* (activity tracking) into every response.
+- **Contextual Memory:** Persistent conversation history ensures he remembers exactly what you discussed 5 minutes ago.
 
-### 👁️ Tactical Vision v3.0
-- **MediaPipe Tasks Integration:** Utilizes high-performance landmarker models for sub-millimeter tracking.
-- **Finger Counting & Gesture Tracking:** Jarvis can count exactly how many fingers you are holding up and track hand movements with high precision.
-- **Biometric Emotion Analysis:** Analyzes 52 face blendshapes to detect cognitive states like **Happy**, **Focused**, **Surprised**, or **Serious**.
-- **Spatial Awareness:** Detects when you are holding objects by cross-referencing hand position with identified items.
-- **Activity Intelligence:** Automatically logs application usage and calculates productivity scores in an offline SQLite database.
+### 👁️ Strategic Vision v4.0
+- **YOLOv8 Neural Core:** High-fidelity object detection capable of identifying 80+ classes (stationary and dynamic) with pinpoint accuracy.
+- **DeepFace Biometrics:** Advanced facial analysis for precise emotion classification (Happy, Serious, Surprised, etc.) and future identity verification.
+- **MediaPipe Hand Lab:** Low-latency hand tracking for finger counting and spatial interaction.
+- **Tactical HUD:** A real-time visual overlay highlighting every detected object and metric in his field of view.
 
 ### 🔊 Sonic Presence
-- **Fluent TTS:** A custom-tuned speech engine with sentence-level pacing, phonetic smoothing, and natural breath pauses.
-- **Visual Waveforms:** Every word Jarvis speaks is accompanied by a dynamic ASCII waveform (` ▂▃▄▅▆▇█`) in your terminal.
-- **British Vocal Core:** Optimized for high-quality British English synthesis for the authentic "Stark Industries" experience.
+- **Indian English Vosk Model:** Optimized for Indian accents with a high-fidelity 1GB acoustic model.
+- **Self-Deafness Protocol:** Jarvis automatically ignores his own voice to prevent feedback loops during speech.
+- **Fluent TTS:** Custom-tuned Microsoft British synthesis with phonetic smoothing.
 
 ---
 
 ## 🚀 Getting Started (Setup Guide)
 
 ### 1. Prerequisites
-- **OS:** Windows 10 or 11 (Optimized for PowerShell and System TTS)
-- **Python:** 3.10+
-- **Microphone & Webcam:** Required for full peripheral awareness.
+- **OS:** Windows 10 or 11
+- **Hardware:** 8GB+ RAM (Recommended for local LLM)
+- **Software:** [Ollama](https://ollama.com/) (Must be running with `mistral` model installed)
 
 ### 2. Download Offline Models
 Jarvis requires local models for speech and vision:
-1. **Speech:** Download [vosk-model-small-en-us-0.15.zip](https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip).
-2. **Vision:** Hand and Face landmarker tasks are auto-downloaded or can be placed in `models/`.
+1. **Speech:** Download the **Indian English** model and place it in `models/vosk-model-en-in-0.5`.
+2. **Vision:** YOLOv8 and DeepFace weights are auto-downloaded on first run (~15MB total).
+3. **Hands:** `hand_landmarker.task` belongs in the `models/` folder.
 
 ### 3. Installation
-Using `uv` for high-performance dependency management:
+
+**From GitHub (Quick Start)**
+1. **Clone the repo:**
+   ```powershell
+   git clone https://github.com/Smit-2907/Jarvis.git
+   cd Jarvis
+   ```
+2. **Run the One-Click Setup:**
+   ```powershell
+   ./setup.ps1
+   ```
+
+**Option B: Manual Installation**
+If you prefer manual control:
 ```powershell
-uv add mediapipe numpy
 uv sync
 uv run main.py
 ```
@@ -52,30 +63,27 @@ uv run main.py
 ---
 
 ## 🏗️ The Skill System
-Jarvis is fully modular. Each "Skill" is a standalone unit:
-- `WebSearchSkill`: Intelligent subject extraction for refined Google research.
-- `SystemHealthSkill`: Visual ASCII HUD for CPU/RAM/Battery diagnostics.
-- `VisionSkill`: Biometric analysis, hand tracking, and object-in-hand logic.
-- `AutomationSkill`: Voice-controlled screenshots, PC locking, and brightness.
-- `ProtocolSkill`: High-level routines like "Protocol Zero" or "Deep Work".
-- `DeepThoughtSkill`: Abstract analysis and sentient banter.
+Jarvis is fully modular. His core intelligence is handled by the **OmniBrain**, while specialized actions are siloed:
+- `OmniBrainSkill`: The "Primary reasoning core" combining LLM, Search, and Vision.
+- `AppLauncherSkill`: Voice-activated app, folder, and website opener.
+- `SystemHealthSkill`: Real-time hardware diagnostics (CPU/RAM).
+- `VisionSkill`: Dedicated telemetry for hands and biometric markers.
+- `MediaSkill`: Volume and playback control.
 
 ---
 
 ## 💬 Tactical Commands
-- **Protocols:** *"Jarvis, engage Protocol Deep Work"* or *"Activate Protocol Zero"*
-- **Diagnostics:** *"Give me a full system diagnostic"*
-- **Vision:** *"How many fingers am I holding up?"* or *"What's my current emotion?"*
-- **Spatial:** *"What am I holding?"* or *"Scan the room"*
-- **Research:** *"Research the latest advancements in fusion power"*
-- **Banter:** *"Are you human?"*, *"Who is Tony Stark?"*, *"Thanks for the help"*
+- **Intelligence:** *"Jarvis, explain the theory of relativity"* or *"What is the latest SpaceX news?"*
+- **Vision:** *"Jarvis, scan the environment and identify everything you see"* or *"How am I looking today?"*
+- **Utility:** *"Open Google Chrome"*, *"Search for the best productivity hacks"*, or *"What is 45 percent of 1200?"*
+- **Control:** *"Jarvis, stop"*, *"Go offline"*, or *"System status check"*
 
 ---
 
 ## 🔒 Privacy & Security
-- **100% Local:** No cloud APIs. No data leaves your machine.
-- **Encrypted Memory:** All learned rules and activity logs are stored locally.
-- **No subscription fees:** Runs entirely on your hardware.
+- **100% Local Logic:** Your voice and face never leave your machine.
+- **Transparent Processing:** All neural synthetic steps are logged in real-time in the terminal.
+- **No API Keys:** Runs entirely on local hardware (Ollama + TFLite + ONNX).
 
 ---
 

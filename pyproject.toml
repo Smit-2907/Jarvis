@@ -18,4 +18,10 @@ dependencies = [
     "scikit-learn>=1.8.0",
     "sounddevice>=0.5.5",
     "vosk>=0.3.45",
+    "requests>=2.32.0",
+    "duckduckgo-search>=6.0.0",
+    "ultralytics>=8.4.17",
+    "onnxruntime>=1.24.2",
+    "deepface>=0.0.98",
+    "tf-keras>=2.20.1",
 ]

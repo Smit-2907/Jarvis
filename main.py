@@ -1,5 +1,10 @@
 import os
 import sys
+
+# Silence TensorFlow / Keras logs before they initialize
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
 from core.agent_loop import AgentLoop
 
 def main():

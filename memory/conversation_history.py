@@ -16,5 +16,9 @@ class ConversationHistory:
     def get_context_string(self):
         return "\n".join([f"{e['role']}: {e['message']}" for e in self.history])
 
+    def get_recent(self, n: int):
+        recent = list(self.history)[-n:]
+        return [(e["role"], e["message"]) for e in recent]
+
     def clear(self):
         self.history.clear()

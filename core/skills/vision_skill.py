@@ -28,17 +28,17 @@ class VisionSkill(BaseSkill):
         if any(word in command for word in ["detect", "holding", "identify", "what is this", "what do you see"]):
             obj_in_hand = vision.get_object_in_hand()
             if obj_in_hand:
-                return {"action": "SPEAK", "text": f"It appears you are holding a {obj_in_hand}, Sir. My sensors have cross-referenced the geometry."}
+                return {"action": "SPEAK", "text": f"It appears you are holding a {obj_in_hand}, Sir. My sensors have cross-referenced the geometry and confirmed its identity."}
                 
             objects = vision.get_detected_objects()
             if objects:
                 if len(objects) == 1:
-                    return {"action": "SPEAK", "text": f"My tactical scan identifies a {objects[0]} in the current frame, Sir."}
+                    return {"action": "SPEAK", "text": f"My tactical scan identifies a {objects[0]} within your immediate vicinity, Sir."}
                 else:
                     obj_str = ", ".join(objects[:-1]) + " and a " + objects[-1]
-                    return {"action": "SPEAK", "text": f"Scanning highlights several items, Sir: a {obj_str}."}
+                    return {"action": "SPEAK", "text": f"Scanning highlights several distinct items in the perimeter, Sir: a {obj_str}."}
             else:
-                return {"action": "SPEAK", "text": f"I'm looking, {name}, but I can't quite identify any specific objects in the frame right now."}
+                return {"action": "SPEAK", "text": f"I'm analyzing the visual feed, {name}, but I cannot distinguish any specific objects with certainty at this moment."}
 
         # 3. Emotions
         if any(word in command for word in ["emotion", "feeling", "how do i look"]):

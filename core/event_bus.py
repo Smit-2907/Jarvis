@@ -18,7 +18,14 @@ class EventBus:
         
         for callback in subscribers:
             try:
+                # If we are in wait/shutdown, some futures might fail. 
+                # We catch it here to prevent the "cannot schedule" error.
                 callback(data)
+            except RuntimeError as re:
+                if "shutdown" in str(re).lower():
+                    pass # Ignore shutdown-related thread errors
+                else:
+                    print(f"Runtime error in subscriber for {event_type}: {re}")
             except Exception as e:
                 print(f"Error in subscriber for {event_type}: {e}")
 

@@ -8,10 +8,11 @@ perception:
     enabled: true
     interval: 2.0
     cooldown: 300 # 5 minutes between greets
+    debug_view: true
   audio:
     enabled: true
     wake_word: "jarvis"
-    model_path: "models/vosk-model-small-en-us-0.15"
+    model_path: "models/vosk-model-en-in-0.5"
     intensity_threshold: 150 # Balanced: hears normal talking clearly
   activity:
     enabled: true
