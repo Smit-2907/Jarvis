@@ -112,7 +112,7 @@ class OmniBrainSkill(BaseSkill):
             )
 
             payload = {
-                "model": "mistral",
+                "model": "mistral:7b", # Explicitly use the version you have installed
                 "prompt": f"{system_prompt}\n\n[CONVERSATION HISTORY]:\n{chat_log}\n\nSir: {command}\nJARVIS:",
                 "stream": False,
                 "options": {
@@ -127,9 +127,14 @@ class OmniBrainSkill(BaseSkill):
                 answer = response.json().get("response", "").strip()
                 if answer:
                     return {"action": "SPEAK", "text": answer}
+                else:
+                    print("⚠️ [NEURAL] Ollama returned an empty response body.")
+            else:
+                print(f"❌ [NEURAL] Ollama Error: Status Code {response.status_code} | Text: {response.text[:100]}")
                     
         except Exception as e:
-            print(f"❌ [NEURAL ERROR] Logic core timeout: {e}")
+            print(f"❌ [NEURAL ERROR] Logic core timeout or connection failure: {e}")
+
 
         # Ultra-Stable Fallback
         return {"action": "SPEAK", "text": "My apologies, Sir. My connection to the primary reasoning core is intermittent. I am however monitoring your environment and stand ready."}

@@ -99,10 +99,12 @@ class DecisionEngine:
         }
 
     def _clean_command(self, cmd: str):
+        import re
         sorted_keys = sorted(self.corrections.keys(), key=len, reverse=True)
         for error in sorted_keys:
-            if error in cmd:
-                cmd = cmd.replace(error, self.corrections[error])
+            # Use regex for whole word replacement to avoid partial matches
+            pattern = r'\b' + re.escape(error) + r'\b'
+            cmd = re.sub(pattern, self.corrections[error], cmd)
         return cmd
 
     def _get_user_name(self):

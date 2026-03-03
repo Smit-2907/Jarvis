@@ -28,10 +28,11 @@ except ImportError:
 ADVANCED_MODELS_AVAILABLE = True
 
 class VisionPresence:
-    def __init__(self, interval: float = 1.0, show_hud: bool = False):
+    def __init__(self, interval: float = 1.0, show_hud: bool = False, root_path: str = "."):
         self.interval = interval
         self.show_hud = show_hud
-        self.corrector = VisionCorrector(os.path.join("config", "vision_mappings.json"))
+        self.root_path = root_path
+        self.corrector = VisionCorrector(os.path.abspath(os.path.join(self.root_path, "config", "vision_mappings.json")))
         self.is_present = False
         self.last_state_change = 0
         self.face_count = 0
@@ -72,7 +73,7 @@ class VisionPresence:
     def _init_tasks(self):
         try:
             # 1. Hands (Keeping MediaPipe for best hand perf)
-            hand_model = os.path.join("models", "hand_landmarker.task")
+            hand_model = os.path.abspath(os.path.join(self.root_path, "models", "hand_landmarker.task"))
             if os.path.exists(hand_model):
                 base_options = python.BaseOptions(model_asset_path=hand_model)
                 options = vision.HandLandmarkerOptions(base_options=base_options, num_hands=2)
@@ -91,7 +92,8 @@ class VisionPresence:
             # YOLOv8n for Object Detection
             print(f"👁️ {time.strftime('%H:%M:%S')} [VISION] Initializing YOLOv8 Neural Core...")
             print(f"💡 [INFO] This might take a moment to synchronize weights (~6MB).")
-            self.yolo_model = YOLO("yolov8n.pt") 
+            yolo_path = os.path.abspath(os.path.join(self.root_path, "yolov8n.pt"))
+            self.yolo_model = YOLO(yolo_path) 
             print(f"✅ {time.strftime('%H:%M:%S')} [VISION] YOLOv8 Object Recognition active.")
             
             # DeepFace pre-warm 

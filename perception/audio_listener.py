@@ -104,8 +104,14 @@ class AudioListener:
     def _loop(self):
         print(f"🎙 [DEBUG] Audio thread started. Model Path: {self.model_path}")
         try:
+            # Deep validation: Check for actual model files inside
+            am_path = os.path.join(self.model_path, "am", "final.mdl")
             if not os.path.exists(self.model_path):
                 print(f"⚠️ [ERROR] Vosk model folder NOT FOUND at {self.model_path}")
+                return
+            if not os.path.exists(am_path):
+                print(f"⚠️ [ERROR] Vosk model is INCOMPLETE. Missing '{am_path}'.")
+                print(f"📦 TIP: Run './setup.ps1' or manually extract the model ZIP.")
                 return
 
             print(f"🎙 [SYSTEM] Loading high-fidelity hearing model... (This will take 30s+)")

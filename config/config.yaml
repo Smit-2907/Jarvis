@@ -28,5 +28,5 @@ memory:
 
 action:
   tts_enabled: true
-  voice_rate: 175
+  voice_rate: 200
   volume: 1.0
